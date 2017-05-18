@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2017 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -14,11 +14,7 @@ import jnr.ffi.Runtime;
 import jnr.ffi.provider.MemoryManager;
 import jnr.posix.POSIXFactory;
 import org.truffleruby.RubyContext;
-import org.truffleruby.platform.DefaultRubiniusConfiguration;
-import org.truffleruby.platform.FDSet;
-import org.truffleruby.platform.NativePlatform;
-import org.truffleruby.platform.ProcessName;
-import org.truffleruby.platform.RubiniusConfiguration;
+import org.truffleruby.platform.*;
 import org.truffleruby.platform.java.JavaProcessName;
 import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
@@ -51,7 +47,12 @@ public class LinuxPlatform implements NativePlatform {
         mallocFree = LibraryLoader.create(MallocFree.class).library("libc.so.6").load();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
-        LinuxRubiniusConfiguration.load(rubiniusConfiguration, context);
+
+        if (Platform.CPU == Platform.CPU_TYPE.SPARCV9) {
+            LinuxSparcV9RubiniusConfiguration.load(rubiniusConfiguration, context);
+        } else {
+            LinuxRubiniusConfiguration.load(rubiniusConfiguration, context);
+        }
     }
 
     @Override
