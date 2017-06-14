@@ -11,6 +11,7 @@ package org.truffleruby.core.proc;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -21,6 +22,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
+import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -31,7 +33,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -56,6 +57,7 @@ public abstract class ProcNodes {
 
         @Child private CallDispatchHeadNode initializeNode;
         @Child private AllocateObjectNode allocateObjectNode;
+        @Child private ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.READ_ONLY);
 
         public abstract DynamicObject executeProcNew(
                 VirtualFrame frame,
@@ -65,8 +67,7 @@ public abstract class ProcNodes {
 
         @Specialization
         public DynamicObject proc(VirtualFrame frame, DynamicObject procClass, Object[] args, NotProvided block) {
-            final Frame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
-                    .getFrame(FrameAccess.READ_ONLY);
+            final Frame parentFrame = callerFrameNode.execute(frame);
 
             DynamicObject parentBlock = RubyArguments.getBlock(parentFrame);
 
