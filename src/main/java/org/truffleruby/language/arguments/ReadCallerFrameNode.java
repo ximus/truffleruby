@@ -20,12 +20,15 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.ValueProfile;
 
 public class ReadCallerFrameNode extends RubyNode {
 
     private final ConditionProfile callerFrameProfile = ConditionProfile.createBinaryProfile();
 
     private final CallerFrameAccess accessMode;
+
+    private final ValueProfile frameProfile = ValueProfile.createClassProfile();
 
     public ReadCallerFrameNode(CallerFrameAccess callerFrameAccess) {
         this.accessMode = callerFrameAccess;
@@ -36,9 +39,9 @@ public class ReadCallerFrameNode extends RubyNode {
         final MaterializedFrame callerFrame = RubyArguments.getCallerFrame(frame);
 
         if (callerFrameProfile.profile(callerFrame != null)) {
-            return callerFrame;
+            return frameProfile.profile(callerFrame);
         } else {
-            return getCallerFrame();
+            return frameProfile.profile(getCallerFrame());
         }
     }
 
