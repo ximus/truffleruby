@@ -386,7 +386,12 @@ public abstract class ThreadNodes {
                     return false;
                 }
             }
-            return create7BitString(status.toString().toLowerCase(), USASCIIEncoding.INSTANCE);
+            return create7BitString(statusString(status), USASCIIEncoding.INSTANCE);
+        }
+
+        @TruffleBoundary
+        private String statusString(final ThreadStatus status) {
+            return status.toString().toLowerCase();
         }
 
     }
