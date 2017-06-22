@@ -253,15 +253,18 @@ public abstract class KernelNodes {
     @CoreMethod(names = "block_given?", isModuleFunction = true)
     public abstract static class BlockGivenNode extends CoreMethodArrayArgumentsNode {
 
-        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.ARGUMENTS);
-
-        @Specialization
+        @Specialization(guards = "callerFrameNode.execute(frame).getClass() == frameClass")
         public boolean blockGiven(VirtualFrame frame,
+                @Cached("callerFrameNode()") ReadCallerFrameNode callerFrameNode,
+                @Cached("callerFrameNode.execute(frame).getClass()") Class<?> frameClass,
                 @Cached("createBinaryProfile()") ConditionProfile blockProfile) {
             Frame callerFrame = callerFrameNode.execute(frame);
             return blockProfile.profile(RubyArguments.getBlock(callerFrame) != null);
         }
 
+        protected static ReadCallerFrameNode callerFrameNode() {
+            return new ReadCallerFrameNode(CallerFrameAccess.ARGUMENTS);
+        }
     }
 
     @CoreMethod(names = "__callee__", isModuleFunction = true)
