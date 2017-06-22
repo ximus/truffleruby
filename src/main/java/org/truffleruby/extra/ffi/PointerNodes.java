@@ -131,6 +131,7 @@ public abstract class PointerNodes {
     public static abstract class PointerReadStringPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
+        @TruffleBoundary
         public DynamicObject readString(DynamicObject pointer, int length) {
             final byte[] bytes = new byte[length];
             Layouts.POINTER.getPointer(pointer).get(0, bytes, 0, length);
@@ -189,6 +190,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteStringPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
+        @TruffleBoundary
         public DynamicObject address(DynamicObject pointer, DynamicObject string, int maxLength) {
             final Rope rope = StringOperations.rope(string);
             final int length = Math.min(rope.byteLength(), maxLength);
@@ -204,11 +206,13 @@ public abstract class PointerNodes {
     public static abstract class PointerReadCharPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "signed")
+        @TruffleBoundary
         public int readCharSigned(DynamicObject pointer, boolean signed) {
             return Layouts.POINTER.getPointer(pointer).getByte(0);
         }
 
         @Specialization(guards = "!signed")
+        @TruffleBoundary
         public int readCharUnsigned(DynamicObject pointer, boolean signed) {
             return Byte.toUnsignedInt(Layouts.POINTER.getPointer(pointer).getByte(0));
         }
@@ -219,11 +223,13 @@ public abstract class PointerNodes {
     public static abstract class PointerReadShortPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "signed")
+        @TruffleBoundary
         public int readShortSigned(DynamicObject pointer, boolean signed) {
             return Layouts.POINTER.getPointer(pointer).getShort(0);
         }
 
         @Specialization(guards = "!signed")
+        @TruffleBoundary
         public int readShortUnsigned(DynamicObject pointer, boolean signed) {
             return Short.toUnsignedInt(Layouts.POINTER.getPointer(pointer).getShort(0));
         }
@@ -234,11 +240,13 @@ public abstract class PointerNodes {
     public static abstract class PointerReadIntPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "signed")
+        @TruffleBoundary
         public int readIntSigned(DynamicObject pointer, boolean signed) {
             return Layouts.POINTER.getPointer(pointer).getInt(0);
         }
 
         @Specialization(guards = "!signed")
+        @TruffleBoundary
         public long readIntUnsigned(DynamicObject pointer, boolean signed) {
             return Integer.toUnsignedLong(Layouts.POINTER.getPointer(pointer).getInt(0));
         }
@@ -249,11 +257,13 @@ public abstract class PointerNodes {
     public static abstract class PointerReadLongPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "signed")
+        @TruffleBoundary
         public long readLongSigned(DynamicObject pointer, boolean signed) {
             return Layouts.POINTER.getPointer(pointer).getLong(0);
         }
 
         @Specialization(guards = "!signed")
+        @TruffleBoundary
         public Object readLongUnsigned(DynamicObject pointer, boolean signed) {
             return readUnsignedLong(getContext(), pointer, 0);
         }
@@ -291,11 +301,13 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "type == TYPE_USHORT")
+        @TruffleBoundary
         public int getAtOffsetUShort(DynamicObject pointer, int offset, int type) {
             return Short.toUnsignedInt(Layouts.POINTER.getPointer(pointer).getShort(offset));
         }
 
         @Specialization(guards = "type == TYPE_INT")
+        @TruffleBoundary
         public int getAtOffsetInt(DynamicObject pointer, int offset, int type) {
             return Layouts.POINTER.getPointer(pointer).getInt(offset);
         }
@@ -332,6 +344,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "type == TYPE_PTR")
+        @TruffleBoundary
         public DynamicObject getAtOffsetPointer(DynamicObject pointer, int offset, int type) {
             if (allocateObjectNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -505,12 +518,14 @@ public abstract class PointerNodes {
         static final long MAX_INT = Integer.MAX_VALUE;
 
         @Specialization
+        @TruffleBoundary
         public DynamicObject writeInt(DynamicObject pointer, int value) {
             Layouts.POINTER.getPointer(pointer).putInt(0, value);
             return pointer;
         }
 
         @Specialization(guards = "value > MAX_INT")
+        @TruffleBoundary
         public DynamicObject writeUnsignedInt(DynamicObject pointer, long value) {
             assert value < (1L << Integer.SIZE);
             int signed = (int) value; // Same as value - 2^32
@@ -526,6 +541,7 @@ public abstract class PointerNodes {
         static final long MAX_LONG = Long.MAX_VALUE;
 
         @Specialization
+        @TruffleBoundary
         public DynamicObject writeLong(DynamicObject pointer, long value) {
             Layouts.POINTER.getPointer(pointer).putLong(0, value);
             return pointer;
